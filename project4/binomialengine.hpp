@@ -36,6 +36,9 @@
 #include <ql/termstructures/yield/flatforward.hpp>
 #include <ql/termstructures/volatility/equityfx/blackconstantvol.hpp>
 
+#include <iostream>
+#include "bsformula.hpp"
+
 namespace QuantLib {
 
     //! Pricing engine for vanilla options using binomial trees
@@ -55,8 +58,8 @@ namespace QuantLib {
       public:
         BinomialVanillaEngine_2(
              const boost::shared_ptr<GeneralizedBlackScholesProcess>& process,
-             Size timeSteps)
-        : process_(process), timeSteps_(timeSteps) {
+             Size timeSteps,bool no_osc)
+        : process_(process), timeSteps_(timeSteps),no_osc_(no_osc) {
             QL_REQUIRE(timeSteps >= 2,
                        "at least 2 time steps required, "
                        << timeSteps << " provided");
@@ -66,6 +69,7 @@ namespace QuantLib {
       private:
         boost::shared_ptr<GeneralizedBlackScholesProcess> process_;
         Size timeSteps_;
+        bool no_osc_;
     };
 
 
@@ -125,8 +129,27 @@ namespace QuantLib {
         option.initialize(lattice, maturity);
 
         // Partial derivatives calculated from various points in the
-        // binomial tree 
+        // binomial tree
         // (see J.C.Hull, "Options, Futures and other derivatives", 6th edition, pp 397/398)
+
+        if (no_osc_==true){
+            option.rollback(grid[timeSteps_-1]);
+
+            bool btype = true; // true = CALL
+            double dividendyield = q;
+
+            if (payoff->optionType() == Option::Put){
+                btype = false;
+            } else {
+                btype = true;
+            }
+
+            for(int i=0;i<=timeSteps_-1;++i){
+                double bs_value = bsformula(lattice->underlying(timeSteps_-1, i), payoff->strike(), maturity-grid[timeSteps_-1], r, v, btype, dividendyield);
+                option.values()[i] = bs_value;
+            }
+        }
+
 
         // Rollback to third-last step, and get underlying prices (s2) &
         // option values (p2) at this point
