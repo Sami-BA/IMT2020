@@ -132,17 +132,14 @@ namespace QuantLib {
         // binomial tree
         // (see J.C.Hull, "Options, Futures and other derivatives", 6th edition, pp 397/398)
 
-        if (no_osc_==true){
+        if (no_osc_){
             option.rollback(grid[timeSteps_-1]);
 
             bool btype = true; // true = CALL
             double dividendyield = q;
 
-            if (payoff->optionType() == Option::Put){
-                btype = false;
-            } else {
-                btype = true;
-            }
+            bool btype = (payoff->optionType() == Option::Call);
+
 
             for(int i=0;i<=timeSteps_-1;++i){
                 double bs_value = bsformula(lattice->underlying(timeSteps_-1, i), payoff->strike(), maturity-grid[timeSteps_-1], r, v, btype, dividendyield);
