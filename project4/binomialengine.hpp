@@ -135,7 +135,7 @@ namespace QuantLib {
         if (no_osc_){
             option.rollback(grid[timeSteps_-1]);
 
-            bool btype = true; // true = CALL
+            //bool btype = true; // true = CALL
             double dividendyield = q;
 
             bool btype = (payoff->optionType() == Option::Call);

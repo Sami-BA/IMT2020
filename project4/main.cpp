@@ -5,6 +5,7 @@
 #include <ql/time/daycounters/actual365fixed.hpp>
 #include <iomanip>
 #include <iostream>
+#include <ctime>
 
 using namespace QuantLib;
 
@@ -38,6 +39,8 @@ int main() {
 
     VanillaOption option(payoff, exercise);
 
+    std::cout << "CoxRossRubinstein" << std::endl;
+
     std::cout << "with oscillation" << std::endl;
     std::cout << std::setprecision(10);
     bool no_osc_flag= false;
@@ -55,6 +58,101 @@ int main() {
         std::cout << timeSteps << "\t" << option.NPV() << std::endl;
     }
 
+    std::cout << "JarrowRudd" << std::endl;
+
+    std::cout << "with oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= false;
+    for (Size timeSteps = 360; timeSteps < 370; ++timeSteps) {
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<JarrowRudd> >(process, timeSteps,no_osc_flag));
+
+        std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    }
+    std::cout << "without oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= true;
+    for (Size timeSteps = 360; timeSteps < 370; ++timeSteps) {
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<JarrowRudd> >(process, timeSteps,no_osc_flag));
+
+        std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    }
+
+        std::cout << "Tian" << std::endl;
+
+    std::cout << "with oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= false;
+    for (Size timeSteps = 360; timeSteps < 370; ++timeSteps) {
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<Tian> >(process, timeSteps,no_osc_flag));
+
+        std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    }
+    std::cout << "without oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= true;
+    for (Size timeSteps = 360; timeSteps < 370; ++timeSteps) {
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<Tian> >(process, timeSteps,no_osc_flag));
+
+        std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    }
+            std::cout << "Number of timeSetps to reach 0.0001 of precision:" << std::endl;
+            std::cout << "CoxRossRubinstein" << std::endl;
+
+    std::cout << "with oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= false;
+    Size timeSteps=10;
+    Real price1=0;
+    Real price2=1;
+    while ((price2-price1)*(price2-price1)>0.000000001 && timeSteps<1000) {
+        timeSteps=timeSteps+1;
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<CoxRossRubinstein> >(process, timeSteps,no_osc_flag));
+        price1=price2;
+        price2=option.NPV();
+    }
+    std::cout << timeSteps << std::endl;
+
+    std::cout << "without oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= true;
+    timeSteps=10;
+    price1=0;
+    price2=1;
+    while ((price2-price1)*(price2-price1)>0.000000001 && timeSteps<1000) {
+        timeSteps=timeSteps+1;
+        option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<CoxRossRubinstein> >(process, timeSteps,no_osc_flag));
+        price1=price2;
+        price2=option.NPV();
+    }
+    std::cout << timeSteps << std::endl;
+
+
+    std::cout << "Running Time Evaluation" << std::endl;
+    clock_t t1;
+    clock_t t2;
+    std::cout << "CoxRossRubinstein" << std::endl;
+    timeSteps=10000;
+    std::cout << "with oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= false;
+    //start timer
+    t1=clock();
+    option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<CoxRossRubinstein> >(process, timeSteps,no_osc_flag));
+    //end timer
+    t2=clock();
+    std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    std::cout << (float)(t2-t1)/CLOCKS_PER_SEC << " seconds to process" << std::endl;
+
+    std::cout << "without oscillation" << std::endl;
+    std::cout << std::setprecision(10);
+    no_osc_flag= true;
+    //start timer
+    t1=clock();
+    option.setPricingEngine(ext::make_shared<BinomialVanillaEngine_2<CoxRossRubinstein> >(process, timeSteps,no_osc_flag));
+    //end timer
+    t2=clock();
+    std::cout << timeSteps << "\t" << option.NPV() << std::endl;
+    std::cout << (float)(t2-t1)/CLOCKS_PER_SEC << " seconds to process" << std::endl;
 
 }
 
